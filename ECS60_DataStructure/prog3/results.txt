@@ -1,0 +1,15 @@
+Scores from p3 for You need to create an authors.csv file!!!! No one will receive credit for this assignment
+
+Addresses used: .@ucdavis.edu
+ 
+davisHuffman.txt (7 points):
+OK
+ 
+AvlTree.cpp (4 points):
+OK
+ 
+linux.words (4 points):
+OK
+ 
+ 
+Total score: 15

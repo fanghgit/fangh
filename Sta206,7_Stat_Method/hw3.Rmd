@@ -1,0 +1,320 @@
+**Q23.13**  
+```{r}
+kidney = read.csv("/Users/fangh/academic/cpp/kidney.csv", header = TRUE, sep = ',')
+kidney = kidney[ , -c(1:2)]
+head(kidney)
+kidney$Duration = factor(kidney$Duration, levels = c(1, 2), labels = c('short', 'long'))
+kidney$Weight = factor(kidney$Weight, levels = c(1, 2, 3), labels = c('mild', 'moderate', 'substantial'))
+kidney$Days = log(kidney$Days + 1)/log(10)
+kidney_new = kidney[!(kidney$Duration == "long" & kidney$Weight == "mild"), ]
+kidney_new$XAij1 = rep(-1, nrow(kidney_new))
+kidney_new$XAij1[kidney_new$Duration == "short"] = 1
+kidney_new$XBij1 = rep(0, nrow(kidney_new))
+kidney_new$XBij1[kidney_new$Weight == "mild"] = 1
+kidney_new$XBij1[kidney_new$Weight == "substantial"] = -1
+kidney_new$XBij2 = rep(0, nrow(kidney_new))
+kidney_new$XBij2[kidney_new$Weight == "moderate"] = 1
+kidney_new$XBij2[kidney_new$Weight == "substantial"] = -1
+```
+**a.**  
+Full regression model:  
+$Y_{ij} = \mu + \alpha_{1}X^A_{ij1} + \beta_{1}X^B_{ij1} + \beta_{2}X^B_{ij2} + \epsilon_{ij}$  
+where $X^A_{ij1}$ equals 1 when i = 1, equals -1 when Duration is i = 2; $X^B_{ij1}$ equals 1 when j = 1, equals 0 when j = 2, equals -1 when j = 3; $X^B_{ij2}$ equals 0 j = 1, equals 1 when j = 2, equals -1 when j = 3;  
+
+Reduced model to test factor A's main effect:  
+$Y_{ij} = \mu + \beta_{1}X^B_{ij1} + \beta_{2}X^B_{ij2} + \epsilon_{ij}$, the definition of $X^B$ is just the same as the full model.  
+
+Reduced model to test factor B's main effect:  
+$Y_{ij} = \mu + \alpha_{1}X^A_{ij1} + \epsilon_{ij}$, the definiation of $X^A$ is just the same as the full model.  
+```{r}
+kidney_new2 = kidney_new[,c(1, 5, 6, 7)]
+#Full model
+fit_full = lm(Days ~ ., data = kidney_new2)
+fit_full
+#Reduced for A
+fit_A = lm(Days ~ .-XAij1, data = kidney_new2)
+fit_A
+#Reduced for B
+fit_B = lm(Days ~ XAij1, data = kidney_new2)
+fit_B
+```
+For full model:  
+$Y_{ij} = 0.66939 + 0.11733X^A_{ij1} - 0.34323X^B_{ij1} + 0.02608X^B_{ij2}$  
+Reduced model for testing A's main effect:  
+$Y_{ij} = 0.70850 - 0.26502X^B_{ij1} - 0.01303X^B_{ij2}$  
+Reduced model for testing B's main effect:  
+$Y_{ij} = 0.75520 + 0.03152X^A_{ij1}$  
+  
+**b.**  
+```{r}
+summary(fit_full)
+summary(aov(Days ~ Weight + Duration, data = kidney_new))
+```
+For factor Duration:  
+$H_0: alpha_1 = 0~ vs.~ H_a: alpha_1 \neq 0$  
+$F^*$ = ((SSE(B) - SSE(A, B))/(df(R) - df(F)))/((SSE(A, B))/(df(F))) = 0.5551/0.0976 = 5.6875
+if $F^*$ > F(0.95, 1, 46), we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 5.6875 > F(0.95, 1, 46) = 4.05, so we conclude $H_a$, the main effect of Duration is significant.  
+The P-value is 0.0218
+  
+For factor Weight:  
+$H_0: beta_i = 0~ vs.~ H_a: exist~ beta_i \neq 0$  
+$F^*$ = ((SSE(A) - SSE(A, B))/(df(R) - df(F)))/(SSE(A, B)/df(F)) = 1.3072/0.0976 = 13.393  
+if $F^*$ > F(0.95, 2, 46), we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 13.393 > F(0.95, 2, 46) = 3.200, so we conclude $H_a$, the main effect of Weight is significant.  
+The P-value is 2.61e-05
+
+**Q23.19**  
+```{r}
+element = c(0.73, 0.86, 0.94, 1.40, 1.62, 0.67, 0.75, 0.81, 1.32, 1.41, 0.15, 0.21, 0.26, 0.75, 0.78)
+block = rep(1:5, 3)
+fat = rep(1:3, each = 5)
+data = as.data.frame(cbind(block, fat, element))
+data$block = as.factor(data$block)
+data$fat = as.factor(data$fat)
+data2 = data[!(data$block == 1 & data$fat == 3) & !(data$block == 5 & data$fat == 1), ]
+```
+The ANOVA model is:  
+$Y_{ij} = \mu + \rho_{i} + \tau_{j} + \epsilon_{ij}$  
+  
+The equivalent regression model:  
+$Y_{ij} = \mu + \rho_{1}X^A_{ij1} + \rho_{2}X^A_{ij2} + ... + \rho_{4}X^A_{ij4} + \tau_{1}X^B_{ij1} + \tau_{2}X^B_{ij2} + \epsilon_{ij}$  
+where $X^A_{ijk} = -1$ when i = 5, $X^A_{ijk}$ = 1 when i = k, otherwise $X^A_{ijk}$ = 0; $X^B_{ijk}$ = -1 when j = 3, $X^B_{ijk}$ = 1 when j = k, otherwise $X^B_{ijk}$ = 0.  
+```{r}
+names_A = paste0("XAij", as.character(c(1:4)))
+names_B = paste0("XBij", as.character(c(1:2)))
+data2[, names_A] = rep(0, nrow(data2))
+data2[, names_B] = rep(0, nrow(data2))
+for(i in 1:4){
+  data2[, names_A[i]][data2$block == i] = 1
+  data2[, names_A[i]][data2$block == 5] = -1
+}
+for(i in 1:2){
+  data2[, names_B[i]][data2$fat == i] = 1
+  data2[, names_B[i]][data2$fat == 3] = -1
+}
+data_new = data2[, -c(1, 2)]
+fit = lm(element ~ ., data = data_new)
+fit
+```
+The Full model:  
+$Y_{ij} = 0.8294 - 0.3361X^A_{ij1} - 0.2227X^A_{ij2} - 0.1594X^A_{ij3} + 0.3273X^A_{ij4} + 0.2508X^B_{ij1} + 0.1626X^B_{ij2}$  
+  
+**b.**  
+The reduced model:  
+$Y_{ij} = \mu + \rho_{1}X^A_{ij1} + \rho_{2}X^A_{ij2} + ... + \rho_{4}X^A_{ij4} + \epsilon_{ij}$  
+The definition of $X^A_{ijk}$ is just the same as the full model.  
+```{r}
+fit_r = lm(element ~ ., data = data_new[, c(1:(ncol(data_new) - 2))])
+fit_r
+```
+$Y_{ij} = 0.8457 - 0.1457X^A_{ij1} - 0.2390X^A_{ij2} - 0.1757X^A_{ij3} + 0.3110X^A_{ij3}$  
+
+**c.**  
+```{r}
+anova(fit)
+#With 
+summary(aov(element ~ block + fat , data = data2))
+#With no missing observation
+summary(aov(element ~ block + fat, data = data))
+```
+$H_0: \tau_{i} = 0 ~vs.~ H_a: exist~ \tau_{i} \neq 0$  
+$F^*$ = ((0.77223 + 0.17845)/2)/(0.00058) = 813.5 
+If $F^*$ > F(0.95, 2, 6), we conclude $H_a$, otherwise we conclude $H_0$.  
+$F^*$ = 819.5517 > F(0.95, 2, 6) = 5.14, so we conclude $H_a$, the mean reduction in lipid level differ for the three diets.  
+The result is the same as the condition when there is no missing oberservation. Although the F value increased drastically.  
+
+**d.**  
+```{r}
+summary(fit)
+mse_root = 0.02417
+X = as.matrix(data_new[, -1])
+#Covariance matrix
+cov_co = solve(t(X) %*% X) * mse_root^2
+```
+$\hat{L} = \hat{\tau}_1 - \hat{\tau}_{3} = 2\hat{\tau}_1 + \hat{\tau}_2 = 0.664287$   
+The Covariance matrix is:  
+```{r}
+cov_co
+c = matrix(c(0, 0, 0, 0, 2, 1))
+t(c) %*% cov_co %*% c
+```
+$s^2(\hat{L}) = t(c) \%*\% cov\_co \%*\% c = 0.0003338222$  
+so $s(\hat{L}) = 0.0182708$  
+L = 0.664287 - qt(0.99, 6) * 0.0182708 = 0.6068679  
+U = 0.664287 + qt(0.99, 6) * 0.0182708 = 0.7217061  
+So our confidence interval for $\hat{L}$ is (0.6068679, 0.7217061)  
+  
+
+**Q24.12**  
+Residuals:  
+```{r}
+data = read.csv("~/hw3.csv", header = TRUE)
+data$A = as.factor(data$A)
+data$B = as.factor(data$B)
+data$C = as.factor(data$C)
+aov_out = aov(Time ~ A*B*C, data = data)
+aov_out$residuals
+plot(aov_out, which = 1)
+```
+  
+There is no obvious nonlinear pattern in our residuals vs fitted value plot, so the ANOVA model seems to be approperiate.  
+```{r}
+plot(aov_out, which = 2)
+```
+  
+From this plot, we can find that the distribution of residuals is slightly heavy tailed, and the normality assumption holds.
+```{r}
+expvalue = rep(1, 60)
+for(i in 1:60)
+{
+  expvalue[i] = qnorm((i - 0.375)/(60 + 0.25), 0, 1)
+}
+ordered_res = sort(aov_out$residuals, decreasing = FALSE)
+cor(expvalue, ordered_res)
+```
+The coefficient of correlation between the ordered residuals and their expected value is 0.9916214, which is comparatively high, suggest that the normality assumption is reasonable.  
+
+**Q24.13**  
+**a.**  
+```{r}
+par(mfrow = c(1, 2))
+with(data, tapply(Time, list(A, B, C), mean))
+with(data[data$C == 1, ], interaction.plot(A, B, Time, ylim = range(data$Time), main = "interaction plot for C = 1"))
+with(data[data$C == 2, ], interaction.plot(A, B, Time, ylim = range(data$Time), main = "interaction plot for C = 2"))
+```
+  
+It seems that the lines in our plot are parallel, so that there seems to be no interaction effect. But the main effect of both A, B and C seem to be significant.  
+
+**b.**  
+The ANOVA Table.  
+```{r}
+summary(aov_out)
+```
+  
+**c.**  
+$H_0: (\alpha\beta\gamma)_{ijk} = 0 ~vs.~ exsit~ (\alpha\beta\gamma)_{ijk} \neq 0$  
+F^* = MSABC/MSE = 10/858 = 0.01165501  
+If $F^*$ > F(0.95, 2, 48), we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 0.01165501 < F(0.95, 2, 48) = 3.190727, so we conclude $H_0$, the three-factor interaction is insignificant.  
+The P-value is 0.989.  
+
+**d.**  
+Since our case is balanced, so the adjusted sums of squares and sequential sums of squares are the same.  
+```{r}
+options(contrasts = c("contr.sum","contr.poly"))
+aov_out_adj = aov(Time ~ A*B*C, data = data)
+drop1(aov_out, .~., test="F")
+#Since our case is balanced, so the adjusted sums of squares and sequential sums of squares are the same.
+```
+For AB:  
+$H_0: (\alpha\beta)_{ij} = 0 ~vs. ~H_a: exist~ (\alpha\beta)_{ij} \neq 0$  
+$F^*$ = MSAB/MSE = 0.316  
+If $F^*$ > F(0.95, 2, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 0.316 < F(0.95, 2, 48) = 3.19, so we conlcude $H_0$, there is no interaction effect for $AB$.  
+The P-value is 0.73  
+  
+For AC:  
+$H_0: (\alpha\gamma)_{ik} = 0 ~vs. ~H_a: exist~ (\alpha\gamma)_{ik} \neq 0$  
+$F^*$ = MSAC/MSE = 0.106  
+If $F^*$ > F(0.95, 1, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 0.106 < F(0.95, 1, 48) = 4.04, so we conclude H_0, there is no interaction effect for A.  
+The P_value is 0.746  
+  
+For BC:  
+$H_0: (\beta\gamma)_{jk} = 0 ~vs.~ H_a: exist~ (\beta\gamma)_{jk} \neq 0$  
+$F^*$ = MSBC/MSE = 0.531  
+If $F^*$ > F(0.95, 2, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 0.531 < F(0.95, 2, 48) = 3.19, so we conclude $H_0$, there is no interaction effect for BC.  
+The P-value is 0.591  
+  
+  
+**e.**  
+For A:  
+$H_0: \alpha_i = 0 ~vs.~ exist~ \alpha_i \neq 0$  
+$F^*$ = MSA/MSE = 629.760  
+If $F^*$ > F(0.95, 1, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 629.760 > F(0.95, 1, 48) = 4.04, so we conclude $H_a$, the main effect of A is significant.  
+The P-value < 2e-16  
+  
+For B:  
+$H_0: \beta_j = 0 ~vs.~ exist~ \beta_j \neq 0$  
+$F^*$ = MSB/MSE = 28.740  
+If $F^*$ > F(0.95, 2, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 28.740 > F(0.95, 2, 48) = 3.19, so we conclude $H_a$, the main effect of B is significant.  
+The P-value is 6.22e-09  
+  
+For C:  
+$H_0: \gamma_k = 0 ~vs.~ exist~ \gamma_k \neq 0$  
+$F^*$ = MSC/MSE = 445.668  
+If $F^*$ > F(0.95, 1, 48), then we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 445.668 > F(0.95, 1, 48) = 4.04, so we conclude $H_a$, the main effect of C is significant.  
+The P-value < 2e-16  
+  
+**f.**  
+Conclusions:  
+$(\alpha\beta\gamma)_{ijk} = 0$  
+$(\alpha\beta)_{ij} = 0, (\alpha\gamma)_{ik} = 0, (\beta\gamma)_{jk} = 0$  
+exist $\alpha_i \neq 0$, exist $\beta_j \neq 0$, exist $\gamma_k \neq 0$  
+According to Kimball inequality.  
+$\alpha$ < 1 - (1 - 0.05)^7 = 0.3016627  
+So the upper bound for the family level of significance for the set of tests is 0.3016627  
+  
+**g.**  
+The result from part(f) confirm my graphic analysis in part(a).  
+  
+**Q24.14**  
+**a.**  
+```{r}
+with(data, tapply(Time, list(A, B, C), mean))
+with(data, tapply(Time, list(A), mean))
+with(data, tapply(Time, list(B), mean))
+with(data, tapply(Time, list(C), mean))
+```
+$\hat{D}_{1}$ = 1155.9333 - 966.1333 = 189.8  
+$\hat{D}_{2}$ = 1044.15 - 1101.40 = -57.25  
+$\hat{D}_{3}$ = 1044.15 - 1037.55 = 6.6  
+$\hat{D}_{4}$ = 1101.40 - 1037.55 = 63.85  
+$\hat{D}_{5}$ = 1140.867 - 981.200 = 159.667 
+```{r}
+mse_root = sqrt(858) 
+D1 = 189.8  
+D2 = -57.25
+D3 = 6.6 
+D4 = 63.85  
+D5 = 159.667 
+s1 = mse_root*sqrt(2)/sqrt(5*3*2)
+s2 = mse_root*sqrt(2)/sqrt(5*2*2)
+s3 = s1
+s1
+s2
+s3
+B = qt(1 - 0.1/(2*5), 48)
+B
+c1 = c(D1-s1*B, D1+s1*B)
+c2 = c(D2-s2*B, D2+s2*B)
+c3 = c(D3-s2*B, D3+s2*B)
+c4 = c(D4-s2*B, D4+s2*B)
+c5 = c(D5-s3*B, D5+s3*B)
+```
+The confidence interval for $\hat{D}_{1}$ is (171.5989, 208.0011)  
+For $\hat{D}_{2}$ is (-79.54175, -34.95825)  
+For $\hat{D}_{3}$ is (-15.69175, 28.89175)  
+For $\hat{D}_{4}$ is (41.55825, 86.14175)  
+For $\hat{D}_{5}$ is (141.4659, 177.8681)  
+  
+**b.**  
+$\hat{\mu}_{231}$ = 1020.4  
+```{r}
+#The interval
+s = mse_root
+s = mse_root/sqrt(5)
+mu = 1020.4
+c(mu - s*qt(0.975, 48), mu + s*qt(0.975, 48))
+```
+So the confidence interval for $\hat{\mu}_{231}$ is (994.0615, 1046.7385)  
+
+
+
+
+

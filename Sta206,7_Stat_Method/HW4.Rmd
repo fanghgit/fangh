@@ -1,0 +1,152 @@
+---
+title: "Untitled"
+author: "Huang Fang  ID:913439658"
+date: "February 3, 2016"
+output: pdf_document
+---
+```{r}
+data = read.csv("~/academic/Sta207/assignment4/q25_7.csv")
+data$Brand = as.factor(data$Brand)
+```
+**Q25.7**  
+**a.**  
+$Y_i = \mu + \tau_i + \epsilon_{ij}$
+```{r}
+aov_out = aov(Sodium ~ Brand, data)
+summary(aov_out)
+```
+$H_0: \sigma_{\mu} = 0 ~ vs. ~ H_a: \sigma_{\mu} ~ \neq ~ 0$  
+$F^*$ = MSTR/MSE = 170.91/0.72 = 237.375  
+If $F^*$ > F(0.99, 5, 42), we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ = 237.375 > 3.488235 = F(0.99, 5, 42), so we conclude $H_a$, $\sigma_{\mu} \neq 0$  
+The P-value <2e-16  
+  
+**b.**  
+MSE = 0.7159524  
+$\hat{\mu} = \bar{Y} = 17.62917$  
+$s^2(\bar{Y}) = (n\sigma^2_{\mu} + \sigma^2)/nr = MSTR/nr = 3.560625$  
+$\hat{\mu} \pm q(0.995, 5)*s(\hat{\mu}) = (10.02067, 25.23767)$  
+  
+**Q25.8**  
+**a.**  
+????
+$F^* = MSTR/MSE = 237.375$  
+L = $(F^*/F(0.995, 5, 42) - 1)/8 = 7.475922$  
+U = $(F^*/F(0.005, 5, 42) - 1)/8 = 371.5058$  
+$L^* = L/(L+1) = 0.8820187$  
+$U^* = U/(U+1) = 0.9973155$  
+So the 
+  
+**b.**  
+The point estimation of $\sigma^2$ is MSE = 0.7159524  
+The point estimation of $\sigma^2_{\mu}$ is $s^2_{\mu}$ = (MSTR - MSE)/n = (170.91 - 0.72)/8 = 21.27375  
+**c.**  
+$SSE/\sigma^2$ ~ $\chi^2(42)$  
+$\chi^2(0.005, 42) < SSE/\sigma < \chi^2(0.995, 42)$  
+So the confidence interval is $(SSE/\chi^2(0.995, 42), SSE/\chi^2(0.005, 42))$, which is (0.4336853, 1.35827)  
+
+**d.**  
+$H_0: \sigma^2_{\mu}/\sigma^2 <= 2 ~vs.~ H_a: \sigma^2_{\mu}/\sigma^2 > 2$  
+If $T^*$ > F(0.99, 5, 42), then we conclude $H_a$, otherwise we conclude $H_0$  
+$T^*$ = 13.96324  > 3.488235 = F(0.99, 5, 42), so we conclude $H_a$, $\sigma^2_{\mu}/\sigma^2 > 2$  
+  
+**e.**  
+$MS_1 = MSTR = 170.91$  
+$MS_2 = MSE/n = 0.72$  
+$df_1 = 5$  
+$df_2 = 42$  
+$F_1 = F(0.995, 5, inf) = 3.34992$  
+$F_2 = F(0.995, 42, inf) = 1.650857$  
+$F_3 = F(0.995, inf, 5) = 12.14353$  
+$F_4 = F(0.995, inf, 42) = 1.897151$  
+$F_5 = F(0.995, 5, 42) = 3.952827$  
+$F_6 = F(0.995, 42, 5) = 12.51164$  
+$G_1 = 1 - 1/F_1 = 0.7014854$  
+$G_2 = 1 - 1/F_2 = 0.394254$  
+$G_3 = \frac{(F_5)^2 - (G_1F_5)^2 - (F_4 - 1)^2}{F_5} = 0.06667706$  
+$G_4 = F_6((1 - 1/F_6)^2 - ((F_3 - F_6)/F_6)^2 - G_2^2) = -1.278215$  
+$H_L = 14.9823$  
+$H_U = 238.0624$  
+The confidence interval is $(s^2_{\mu} + H_L, s^2_{\mu} + H_U)$, which is (36.25605, 259.3361)  
+  
+**Q25.16**  
+**a.**  
+```{r}
+data = read.csv("~/academic/Sta207/assignment4/q2516.csv")
+data$Technician = as.factor(data$Technician)
+data$Make = as.factor(data$Make)
+aov_out = aov(Minutes ~ Technician * Make, data = data)
+summary(aov_out)
+```
+$H_0: \sigma^2_{\alpha\beta} = 0 ~vs.~ H_a: \sigma^2_{\alpha\beta} \neq 0$  
+$F^*$ = MSAB/MSE = 5.841  
+If $F^*$ > F(0.99, 4, 36), we conclude $H_a$, otherwise we conclude $H_0$  
+$F^*$ > 5.841 > 3.890308 = F(0.99, 4, 36), so we conclude $H_a$, $\sigma^2_{\alpha\beta} \neq 0$  
+The P-value is 0.000994  
+  
+**b.**  
+The point estimation of $\sigma^2_{\alpha\beta}$ is $\frac{MSAB - MSE}{n} = frac{303.82 - 52.01}{5} = 50.362$  
+The point estimaton of $\sigma^2$ is MSE = 52.01  
+The value of $\sigma^2_{\alpha\beta}$ appears to be similiar as $\sigma^2$.  
+  
+**c.**  
+$H_0: \sigma_{\alpha} = 0 ~vs.~ H_a: \sigma_{\alpha_i} \neq 0$  
+$F^*$ = MSA/MSE = 0.236  
+If $F^*$ > F(0.99, 2, 36), we conclude $H_a$, otherwise we conclude $H_0$  
+F^* = 0.236 < 5.247894 = F(0.99, 2, 36), so we conclude $H_0$, the main effect of factor A is not significant.  
+  
+**d.**  
+$H_0: \beta_i = 0 ~vs.~ H_a: \beta_i \neq 0$  
+$F^*$ = MSB/MSE = 0.272  
+If $F^*$ > F(0.99, 2, 36), we conclude $H_a$, otherwise we conclude $H_0$  
+F^* = 0.272 < 5.247894 = F(0.99, 2, 36), so we conclude $H_0$, the main effect of factor B is not significant.  
+  
+**e.**  
+```{r}
+with(data, tapply(Minutes, list(Make), mean))
+```
+$\hat{L}_1 = \hat{\mu}_{\cdot1} - \hat{\mu}_{\cdot2} = -0.46667$  
+$\hat{L}_2 = \hat{\mu}_{\cdot1} - \hat{\mu}_{\cdot3} = 1.4$  
+$\hat{L}_3 = \hat{\mu}_{\cdot2} - \hat{\mu}_{\cdot3} = 1.86667$  
+$s^2(\hat{L}_i) = 2*MSAB/na = 2*303.82/15 = 40.50933$, its degree of freedom is df(MSAB), which is 4.  
+T = qtukey(0.95, 3, 4) = 5.040241  
+So the confidence interval for $\hat{L}_1$ is (-23.15037, 22.21703)  
+The confidence interval for $\hat_{L}_2$ is (-21.2837, 24.0837)  
+The confidence interval for $\hat_{L}_3$ is (-20.81703, 24.55037)  
+These intervals suggest that the main effect of factor "Make" is not significant, there is no siginificant difference in the means for different levels.  
+  
+**f.**  
+$\hat{\mu}_{\cdot1} = 56.13333$  
+$c_1 = frac{b-1}{nab} = frac{2}{45}$   
+$c_2 = frac{1}{nab} = frac{1}{45}$  
+$\sigma^2(\hat{\mu}_{\cdot1}) = c_1MSAB + c_2MSA = 13.77622$  
+$df = 13.77622^2/((303.82*2/45)^2/4 + (12.29/45)^2/2) = 4.160038$  
+$\hat{\mu}_{\cdot1} \pm t(0.995, df)\sigma(\hat{\mu}_{\cdot1}) = (39.04462, 73.22204)$  
+The probability that our interval covers $\mu_{\cdot1}$ is bigger than 0.99  
+  
+**g.**  ?????
+$\sigma^2_{\alpha} = (MSA - MSE)/nb = -2.648$  
+$df_1 = 2$  
+$df_2 = 36$  
+F1 = F(0.995, 2, Inf) = 5.298317  
+F2 = F(0.995, 36, Inf) = 1.710588  
+F3 = F(0.995, Inf, 2) = 199.4996  
+F4 = F(0.995, Inf, 36) = 2.012666 
+F5 = F(0.995, 2, 36) = 6.160588  
+F6 = F(0.995, 36, 2) = 199.4718
+G1 = 1-1/F1 = 0.8112608  
+G2 = 1-1/F2 = 0.4154057  
+G3 = 0.1018956  
+G4 = -34.47655  
+$H_L = sqrt((G1*c1*MS1)^2+((F4-1)*c2*MS2)^2-G3*c1*c2*MS1*MS2) = 3.613886$  
+$H_U = sqrt(((F3-1)*c1*MS1)^2+(G2*c2*MS2)^2-G4*c1*c2*MS1*MS2) = 162.3423$  
+?????So the confidence interval is (0, 162.3423)
+
+
+
+
+
+
+
+
+
